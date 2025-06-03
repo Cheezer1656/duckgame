@@ -8,6 +8,13 @@ const WINDOW_WIDTH: f32 = 800.0;
 const WINDOW_HEIGHT: f32 = 600.0;
 const PLAYER_SPEED: f32 = 50.0;
 
+#[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+enum GameState {
+    #[default]
+    Playing,
+    GameOver,
+}
+
 #[derive(Resource)]
 struct Score(u32);
 
@@ -39,6 +46,7 @@ fn main() {
         }))
         .insert_resource(ClearColor(Color::srgb(0.0, 0.722, 0.961)))
         .insert_resource(Score(0))
+        .init_state::<GameState>()
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -48,8 +56,14 @@ fn main() {
                 spawn_enemies.run_if(on_timer(Duration::from_secs_f32(0.25))),
                 spawn_bullets,
                 check_for_collisions,
+                check_for_player_collisions,
                 update_score_text,
-            ),
+            )
+                .run_if(in_state(GameState::Playing)),
+        )
+        .add_systems(
+            OnEnter(GameState::GameOver),
+            (darken_screen, display_game_over_text),
         )
         .run();
 }
@@ -174,6 +188,39 @@ fn check_for_collisions(
             }
         }
     }
+}
+
+fn check_for_player_collisions(
+    player_query: Query<&Transform, With<IsPlayer>>,
+    enemy_query: Query<&Transform, With<IsEnemy>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    if let Ok(player_transform) = player_query.single() {
+        for enemy_transform in enemy_query.iter() {
+            if player_transform
+                .translation
+                .distance(enemy_transform.translation)
+                < 50.0
+            {
+                game_state.set(GameState::GameOver);
+            }
+        }
+    }
+}
+
+fn darken_screen(mut color: ResMut<ClearColor>) {
+    color.0 = Color::srgb(0.1, 0.1, 0.1);
+}
+
+fn display_game_over_text(mut commands: Commands) {
+    commands.spawn((
+        Text2d::new("Game Over!"),
+        TextFont {
+            font_size: 50.0,
+            ..default()
+        },
+        Transform::from_xyz(0.0, 0.0, 0.0),
+    ));
 }
 
 fn update_score_text(score: Res<Score>, mut query: Query<&mut Text2d>) {
