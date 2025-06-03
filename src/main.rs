@@ -131,8 +131,8 @@ fn spawn_bullets(
                 Mesh2d(bullet_assets.mesh.clone()),
                 MeshMaterial2d(bullet_assets.material.clone()),
                 Transform::from_xyz(
-                    player_transform.translation.x,
-                    player_transform.translation.y,
+                    player_transform.translation.x + 70.0,
+                    player_transform.translation.y + 14.0,
                     0.0,
                 ),
                 Velocity(Vec2::new(500.0, 0.0)),
