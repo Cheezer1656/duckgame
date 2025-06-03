@@ -59,12 +59,12 @@ fn setup(
 
     commands.spawn((
         Sprite::from_image(asset_server.load("duck.png")),
-        Transform::from_xyz(0., 0., 0.).with_scale(Vec3::splat(0.5)),
+        Transform::from_xyz(0., 0., 0.).with_scale(Vec3::splat(0.3)),
         IsPlayer,
         Velocity::default(),
     ));
 
-    let bullet_mesh = meshes.add(Rectangle::new(30.0, 10.0));
+    let bullet_mesh = meshes.add(Rectangle::new(17.0, 6.0));
     let bullet_material = materials.add(ColorMaterial::from(Color::srgb(0.1, 0.1, 0.1)));
     commands.insert_resource(BulletAssets {
         mesh: bullet_mesh,
@@ -112,7 +112,7 @@ fn spawn_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
                 -WINDOW_HEIGHT / 2.0 + fastrand::f32() * WINDOW_HEIGHT,
                 0.0,
             )
-            .with_scale(Vec3::splat(0.2)),
+            .with_scale(Vec3::splat(0.1)),
             Velocity(Vec2::new(-10.0 - fastrand::f32() * 30.0, 0.0)),
             IsEnemy,
         ));
