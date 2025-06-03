@@ -34,7 +34,7 @@ fn main() {
             }),
             ..default()
         }))
-        .insert_resource(ClearColor(Color::srgb(0.0, 1.0, 1.0)))
+        .insert_resource(ClearColor(Color::srgb(0.0, 0.722, 0.961)))
         .add_systems(Startup, setup)
         .add_systems(
             Update,
