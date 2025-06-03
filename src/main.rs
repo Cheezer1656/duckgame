@@ -9,6 +9,9 @@ const WINDOW_HEIGHT: f32 = 600.0;
 const PLAYER_SPEED: f32 = 50.0;
 
 #[derive(Resource)]
+struct Score(u32);
+
+#[derive(Resource)]
 struct BulletAssets {
     mesh: Handle<Mesh>,
     material: Handle<ColorMaterial>,
@@ -35,6 +38,7 @@ fn main() {
             ..default()
         }))
         .insert_resource(ClearColor(Color::srgb(0.0, 0.722, 0.961)))
+        .insert_resource(Score(0))
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -44,6 +48,7 @@ fn main() {
                 spawn_enemies.run_if(on_timer(Duration::from_secs_f32(0.25))),
                 spawn_bullets,
                 check_for_collisions,
+                update_score_text,
             ),
         )
         .run();
@@ -70,6 +75,15 @@ fn setup(
         mesh: bullet_mesh,
         material: bullet_material,
     });
+
+    commands.spawn((
+        Text2d::new("Score: 0"),
+        TextFont {
+            font_size: 30.0,
+            ..default()
+        },
+        Transform::from_xyz(0.0, WINDOW_HEIGHT / 2.0 - 30.0, 0.0),
+    ));
 }
 
 fn handle_input(
@@ -143,15 +157,27 @@ fn spawn_bullets(
 
 fn check_for_collisions(
     mut commands: Commands,
+    mut score: ResMut<Score>,
     mut bullet_query: Query<(Entity, &Transform), With<Mesh2d>>,
     enemy_query: Query<(Entity, &Transform), With<IsEnemy>>,
 ) {
     for (bullet_entity, bullet_transform) in bullet_query.iter_mut() {
         for (enemy_entity, enemy_transform) in enemy_query.iter() {
-            if bullet_transform.translation.distance(enemy_transform.translation) < 30.0 {
+            if bullet_transform
+                .translation
+                .distance(enemy_transform.translation)
+                < 30.0
+            {
                 commands.entity(bullet_entity).despawn();
                 commands.entity(enemy_entity).despawn();
+                score.0 += 1;
             }
         }
+    }
+}
+
+fn update_score_text(score: Res<Score>, mut query: Query<&mut Text2d>) {
+    if let Ok(mut text) = query.single_mut() {
+        text.0 = format!("Score: {}", score.0);
     }
 }
